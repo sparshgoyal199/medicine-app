@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regrowth OS — Progress Photos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #F0F4FF; font-family: 'Inter', sans-serif; }
+        .top-nav {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white; padding: 1rem 1.5rem;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .nav-title { font-size: 1.1rem; font-weight: 700; }
+        .main-content { padding: 1rem; padding-bottom: 5rem; max-width: 680px; margin: 0 auto; }
+        .section-card {
+            background: white; border-radius: 1.25rem;
+            padding: 1.25rem; margin-bottom: 1rem;
+            box-shadow: 0 2px 15px rgba(79,70,229,0.08);
+        }
+        .section-title { font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 1rem; }
+
+        /* Upload area */
+        .upload-area {
+            border: 2px dashed #C7D2FE;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            background: #EEF2FF;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .preview-wrap {
+            position: relative;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            max-height: 220px;
+        }
+        .ghost-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.35;
+            pointer-events: none;
+            display: none;
+        }
+        .upload-area:hover { border-color: #4F46E5; background: #E0E7FF; }
+        .upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .upload-text { font-size: 0.9rem; color: #4F46E5; font-weight: 600; }
+        .upload-sub { font-size: 0.78rem; color: #6B7280; margin-top: 0.25rem; }
+        .upload-input {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+        }
+
+        .type-selector {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;
+        }
+        .type-btn {
+            padding: 0.75rem; border: 2px solid #E5E7EB; border-radius: 0.75rem;
+            background: white; cursor: pointer; text-align: center;
+            font-size: 0.875rem; font-weight: 500; color: #6B7280;
+            transition: all 0.2s;
+        }
+        .type-btn.selected { border-color: #4F46E5; background: #EEF2FF; color: #4F46E5; }
+
+        /* Compare slider */
+        .compare-container {
+            position: relative; border-radius: 1rem; overflow: hidden;
+            user-select: none; cursor: ew-resize;
+            background: #1F2937;
+        }
+        .compare-container img {
+            display: block; width: 100%; height: 280px; object-fit: cover;
+        }
+        .compare-before, .compare-after {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        }
+        .compare-before { clip-path: inset(0 50% 0 0); }
+        .compare-after img { width: 100%; height: 100%; object-fit: cover; }
+        .compare-handle {
+            position: absolute; top: 0; bottom: 0;
+            width: 3px; background: white;
+            left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .compare-handle::after {
+            content: '◀▶';
+            background: white; color: #4F46E5;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .compare-labels {
+            display: flex; justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+        .compare-label {
+            font-size: 0.75rem; color: #6B7280; font-weight: 500;
+        }
+
+        /* Photo grid */
+        .photo-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+        }
+        .photo-thumb {
+            position: relative; border-radius: 0.5rem; overflow: hidden;
+            aspect-ratio: 1; background: #E5E7EB; cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .photo-thumb:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(79,70,229,0.2);
+        }
+        .photo-thumb img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .photo-thumb .photo-day {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.65); color: white;
+            font-size: 0.65rem; padding: 0.25rem 0.3rem; text-align: center;
+        }
+        .photo-thumb .delete-btn {
+            position: absolute; top: 0.25rem; right: 0.25rem;
+            background: rgba(239,68,68,0.85); color: white;
+            border: none; border-radius: 50%;
+            width: 24px; height: 24px; font-size: 0.75rem;
+            cursor: pointer; display: none;
+            align-items: center; justify-content: center;
+            z-index: 10;
+        }
+        .photo-thumb:hover .delete-btn { display: flex; }
+
+        /* Fullscreen photo modal */
+        .photo-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; padding: 1rem;
+        }
+        .photo-modal.open { display: flex; }
+        .photo-modal-content {
+            position: relative; max-width: 90vw; max-height: 85vh;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .photo-modal img {
+            max-width: 100%; max-height: 75vh; border-radius: 0.75rem;
+            object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .photo-modal-meta {
+            color: white; margin-top: 0.75rem; font-size: 0.9rem; font-weight: 500;
+            text-align: center;
+        }
+        .photo-modal-close {
+            position: absolute; top: -2.5rem; right: 0;
+            background: rgba(255,255,255,0.2); color: white;
+            border: none; border-radius: 50%; width: 36px; height: 36px;
+            font-size: 1.2rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .photo-modal-close:hover { background: rgba(255,255,255,0.35); }
+
+        .tab-buttons {
+            display: flex; gap: 0.5rem; margin-bottom: 1rem;
+        }
+        .tab-btn {
+            flex: 1; padding: 0.6rem; border: 2px solid #E5E7EB;
+            border-radius: 0.6rem; background: white; cursor: pointer;
+            font-size: 0.85rem; font-weight: 500; color: #6B7280;
+            transition: all 0.2s;
+        }
+        .tab-btn.active { border-color: #4F46E5; background: #EEF2FF; color: #4F46E5; }
+
+        .btn-upload {
+            width: 100%; padding: 0.85rem;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: white; border: none; border-radius: 0.75rem;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            margin-top: 0.75rem; transition: opacity 0.2s;
+        }
+        .btn-upload:hover { opacity: 0.9; }
+        .btn-upload:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .no-photos {
+            text-align: center; padding: 2rem;
+            color: #9CA3AF; font-size: 0.875rem;
+        }
+        .no-photos .no-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+
+        .ghost-hint {
+            background: #EEF2FF; border-radius: 0.75rem;
+            padding: 0.75rem 1rem; font-size: 0.8rem;
+            color: #4F46E5; margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .loading-spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 0.5rem; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; display: flex;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.08); z-index: 100;
+        }
+        .bottom-nav a {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 0.7rem 0; color: #9CA3AF;
+            text-decoration: none; font-size: 0.7rem; font-weight: 500;
+            transition: color 0.2s;
+        }
+        .bottom-nav a .icon { font-size: 1.4rem; margin-bottom: 0.1rem; }
+        .bottom-nav a.active { color: #4F46E5; }
+    </style>
+</head>
+<body>
+<nav class="top-nav">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="nav-title">📸 Progress Photos</div>
+</nav>
+
+<div class="main-content">
+
+    <!-- Ghost hint -->
+    <div class="ghost-hint">
+        👁️ <span>Tip: Use the same angle & lighting each time for the best comparison results.</span>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="section-card">
+        <div class="section-title">Upload Progress Photo</div>
+
+        <!-- Type Selector -->
+        <div class="type-selector">
+            <button class="type-btn selected" id="type-hairline" onclick="selectType('hairline')">
+                👤 Hairline
+            </button>
+            <button class="type-btn" id="type-crown" onclick="selectType('crown')">
+                👑 Crown
+            </button>
+        </div>
+
+        <div class="upload-area" id="upload-area">
+            <input type="file" class="upload-input" id="photo-file" accept="image/*" capture="environment" onchange="previewPhoto(event)">
+            <div id="upload-placeholder">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">Tap to Take Photo</div>
+                <div class="upload-sub">Or select from gallery</div>
+            </div>
+            <div id="preview-wrap" class="preview-wrap" style="display:none;">
+                <img id="ghost-overlay" class="ghost-overlay" src="" alt="Day 1 guide">
+                <img id="photo-preview" src="" alt="Preview" style="width:100%; max-height:220px; object-fit:cover; display:block;">
+            </div>
+        </div>
+
+        <button class="btn-upload" id="upload-btn" onclick="uploadPhoto()" disabled>
+            Upload Photo
+        </button>
+    </div>
+
+    <!-- Photo Type Tabs -->
+    <div class="section-card">
+        <div class="section-title">Your Photos</div>
+        <div class="tab-buttons">
+            <button class="tab-btn active" id="tab-hairline" onclick="switchPhotoTab('hairline')">Hairline</button>
+            <button class="tab-btn" id="tab-crown" onclick="switchPhotoTab('crown')">Crown</button>
+        </div>
+
+        <!-- Compare Slider -->
+        <div id="compare-section" class="hidden">
+            <div class="compare-container" id="compare-container"
+                 onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
+                <img id="compare-after-img" src="" alt="Latest">
+                <div class="compare-before" id="compare-before">
+                    <img id="compare-before-img" src="" alt="Day 1" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div class="compare-handle" id="compare-handle"></div>
+            </div>
+            <div class="compare-labels">
+                <span class="compare-label">◀ Day 1 (Before)</span>
+                <span class="compare-label">Latest (After) ▶</span>
+            </div>
+        </div>
+
+        <!-- Photo Grid -->
+        <div class="photo-grid" id="photo-grid">
+            <div class="no-photos">
+                <div class="no-icon">🖼️</div>
+                Loading photos...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen Photo Modal -->
+<div id="photo-modal" class="photo-modal" onclick="closePhotoModal(event)">
+    <div class="photo-modal-content">
+        <button class="photo-modal-close" onclick="closePhotoModal(event, true)">✕</button>
+        <img id="modal-img" src="" alt="Full photo">
+        <div id="modal-meta" class="photo-modal-meta"></div>
+    </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+    <a href="dashboard.html"><span class="icon">🏠</span>Home</a>
+    <a href="photos.html" class="active"><span class="icon">📸</span>Photos</a>
+    <a href="symptoms.html"><span class="icon">🩺</span>Help</a>
+    <a href="milestones.html"><span class="icon">🏆</span>Badges</a>
+</nav>
+
+<script src="../js/config.js"></script>
+<script>
+    requireAuth();
+
+    let selectedType = 'hairline';
+    let currentTab = 'hairline';
+    let allPhotos = { hairline: [], crown: [] };
+    let isDragging = false;
+
+    function openPhotoModal(url, dayNumber, dateStr, type) {
+        const modal = document.getElementById('photo-modal');
+        const img = document.getElementById('modal-img');
+        const meta = document.getElementById('modal-meta');
+        img.src = url;
+        meta.textContent = `Day ${dayNumber} (${type}) • ${formatDate(dateStr)}`;
+        modal.classList.add('open');
+    }
+
+    function closePhotoModal(e, force = false) {
+        if (force || e.target.id === 'photo-modal' || e.target.classList.contains('photo-modal-close')) {
+            const modal = document.getElementById('photo-modal');
+            modal.classList.remove('open');
+        }
+    }
+
+    function updateGhostOverlay(type) {
+        const photos = allPhotos[type] || [];
+        const ghost = document.getElementById('ghost-overlay');
+        if (photos.length === 0) {
+            ghost.style.display = 'none';
+            ghost.removeAttribute('src');
+            return;
+        }
+        const baseline = photos[photos.length - 1];
+        ghost.src = baseline.photo_url;
+        ghost.style.display = 'block';
+    }
+
+    async function loadPhotos() {
+        try {
+            const data = await apiCall('/photos/');
+            allPhotos.hairline = data.grouped.hairline || [];
+            allPhotos.crown = data.grouped.crown || [];
+            renderPhotos(currentTab);
+            updateGhostOverlay(selectedType);
+        } catch (err) {
+            document.getElementById('photo-grid').innerHTML = `
+                <div class="no-photos"><div class="no-icon">⚠️</div>Failed to load photos</div>`;
+        }
+    }
+
+    function renderPhotos(type) {
+        const photos = allPhotos[type];
+        const grid = document.getElementById('photo-grid');
+        const compareSection = document.getElementById('compare-section');
+
+        if (photos.length === 0) {
+            grid.innerHTML = `<div class="no-photos" style="grid-column:1/-1">
+                <div class="no-icon">📷</div>
+                No ${type} photos yet.<br>Upload your first photo above!
+            </div>`;
+            compareSection.classList.add('hidden');
+            return;
+        }
+
+        // Show compare if 2+ photos
+        if (photos.length >= 2) {
+            compareSection.classList.remove('hidden');
+            const first = photos[photos.length - 1];  // oldest
+            const latest = photos[0];                   // newest
+            document.getElementById('compare-before-img').src = first.photo_url;
+            document.getElementById('compare-after-img').src = latest.photo_url;
+        } else {
+            compareSection.classList.add('hidden');
+        }
+
+        grid.innerHTML = photos.map(p => `
+            <div class="photo-thumb" onclick="openPhotoModal('${p.photo_url}', '${p.day_number}', '${p.capture_date}', '${p.photo_type}')">
+                <img src="${p.photo_url}" alt="Day ${p.day_number}" loading="lazy">
+                <div class="photo-day">Day ${p.day_number}<br>${formatDate(p.capture_date)}</div>
+                <button class="delete-btn" onclick="event.stopPropagation(); deletePhoto('${p.id}', '${type}')">✕</button>
+            </div>
+        `).join('');
+    }
+
+    function selectType(type) {
+        selectedType = type;
+        document.getElementById('type-hairline').className = 'type-btn' + (type === 'hairline' ? ' selected' : '');
+        document.getElementById('type-crown').className = 'type-btn' + (type === 'crown' ? ' selected' : '');
+        updateGhostOverlay(type);
+    }
+
+    function switchPhotoTab(type) {
+        currentTab = type;
+        document.getElementById('tab-hairline').className = 'tab-btn' + (type === 'hairline' ? ' active' : '');
+        document.getElementById('tab-crown').className = 'tab-btn' + (type === 'crown' ? ' active' : '');
+        renderPhotos(type);
+    }
+
+    function previewPhoto(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const preview = document.getElementById('photo-preview');
+        const wrap = document.getElementById('preview-wrap');
+        const placeholder = document.getElementById('upload-placeholder');
+        preview.src = URL.createObjectURL(file);
+        wrap.style.display = 'block';
+        placeholder.style.display = 'none';
+        updateGhostOverlay(selectedType);
+        document.getElementById('upload-btn').disabled = false;
+    }
+
+    async function uploadPhoto() {
+        const fileInput = document.getElementById('photo-file');
+        const btn = document.getElementById('upload-btn');
+        if (!fileInput.files[0]) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span>Uploading...';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('photo_type', selectedType);
+            formData.append('capture_date', new Date().toISOString().split('T')[0]);
+
+            await apiUpload('/photos/upload', formData);
+            showToast('📸 Photo uploaded!', 'success');
+
+            // Reset
+            document.getElementById('preview-wrap').style.display = 'none';
+            document.getElementById('upload-placeholder').style.display = 'block';
+            fileInput.value = '';
+            btn.disabled = true;
+            btn.innerHTML = 'Upload Photo';
+
+            // Reload photos
+            await loadPhotos();
+            switchPhotoTab(selectedType);
+            updateGhostOverlay(selectedType);
+
+        } catch (err) {
+            showToast(err.message || 'Upload failed', 'error');
+            btn.disabled = false;
+            btn.innerHTML = 'Upload Photo';
+        }
+    }
+
+    async function deletePhoto(photoId, type) {
+        if (!confirm('Delete this photo?')) return;
+        try {
+            await apiCall(`/photos/${photoId}`, 'DELETE');
+            showToast('Photo deleted', 'success');
+            await loadPhotos();
+            renderPhotos(type);
+        } catch (err) {
+            showToast('Failed to delete photo', 'error');
+        }
+    }
+
+    // Drag compare handle
+    function startDrag(e) {
+        isDragging = true;
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('touchmove', onDrag);
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+    }
+
+    function onDrag(e) {
+        if (!isDragging) return;
+        const container = document.getElementById('compare-container');
+        const rect = container.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const pct = Math.min(Math.max((x / rect.width) * 100, 0), 100);
+        document.getElementById('compare-before').style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+        document.getElementById('compare-handle').style.left = pct + '%';
+    }
+
+    function stopDrag() {
+        isDragging = false;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchend', stopDrag);
+    }
+
+    loadPhotos();
+</script>
+</body>
+</html>

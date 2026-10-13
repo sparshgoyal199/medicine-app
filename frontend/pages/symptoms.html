@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regrowth OS — Is This Normal?</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #F0F4FF; font-family: 'Inter', sans-serif; }
+        .top-nav {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white; padding: 1rem 1.5rem;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .nav-title { font-size: 1.1rem; font-weight: 700; }
+        .main-content { padding: 1rem; padding-bottom: 5rem; max-width: 680px; margin: 0 auto; }
+        .section-card {
+            background: white; border-radius: 1.25rem;
+            padding: 1.25rem; margin-bottom: 1rem;
+            box-shadow: 0 2px 15px rgba(79,70,229,0.08);
+        }
+        .section-title { font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; }
+        .section-sub { font-size: 0.8rem; color: #6B7280; margin-bottom: 1rem; }
+
+        /* Concern buttons */
+        .concerns-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+        }
+        .concern-btn {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.9rem; border: 2px solid #E5E7EB;
+            border-radius: 0.9rem; background: white;
+            cursor: pointer; text-align: left;
+            transition: all 0.2s; font-size: 0.85rem;
+            color: #374151; font-family: inherit;
+        }
+        .concern-btn:hover { border-color: #4F46E5; background: #EEF2FF; color: #4F46E5; }
+        .concern-btn.selected { border-color: #4F46E5; background: #4F46E5; color: white; }
+        .concern-icon { font-size: 1.4rem; flex-shrink: 0; }
+        .concern-text { font-size: 0.8rem; font-weight: 500; line-height: 1.3; }
+
+        /* Custom input */
+        .custom-concern {
+            display: flex; gap: 0.5rem; margin-top: 0.75rem;
+        }
+        .custom-concern input {
+            flex: 1; padding: 0.7rem 1rem; border: 1.5px solid #E5E7EB;
+            border-radius: 0.6rem; font-size: 0.875rem; font-family: inherit;
+        }
+        .custom-concern input:focus { outline: none; border-color: #4F46E5; }
+        .custom-concern button {
+            padding: 0.7rem 1rem; background: #4F46E5; color: white;
+            border: none; border-radius: 0.6rem; cursor: pointer; font-size: 0.85rem;
+            font-weight: 600; white-space: nowrap;
+        }
+
+        .btn-ask {
+            width: 100%; padding: 0.9rem;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: white; border: none; border-radius: 0.75rem;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            margin-top: 1rem; transition: opacity 0.2s;
+        }
+        .btn-ask:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-ask:hover:not(:disabled) { opacity: 0.9; }
+
+        /* AI Response */
+        .ai-response-card {
+            background: linear-gradient(135deg, #EEF2FF, #F5F3FF);
+            border: 1px solid #C7D2FE;
+            border-radius: 1rem; padding: 1.25rem;
+            margin-bottom: 1rem; display: none;
+        }
+        .ai-header {
+            display: flex; align-items: center; gap: 0.6rem;
+            margin-bottom: 0.75rem;
+        }
+        .ai-avatar {
+            width: 36px; height: 36px; background: #4F46E5;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 1rem; color: white;
+        }
+        .ai-name { font-size: 0.875rem; font-weight: 700; color: #4F46E5; }
+        .ai-sub { font-size: 0.72rem; color: #818CF8; }
+        .ai-text {
+            font-size: 0.875rem; color: #1F2937; line-height: 1.7;
+            white-space: pre-line;
+        }
+        .escalate-card {
+            background: #FEE2E2; border: 1px solid #FCA5A5;
+            border-radius: 0.75rem; padding: 1rem;
+            margin-top: 1rem; display: none;
+        }
+        .escalate-title { font-size: 0.875rem; font-weight: 700; color: #991B1B; margin-bottom: 0.5rem; }
+        .escalate-text { font-size: 0.8rem; color: #7F1D1D; margin-bottom: 0.75rem; }
+        .btn-doctor {
+            display: block; text-align: center; padding: 0.6rem;
+            background: #DC2626; color: white; border-radius: 0.5rem;
+            text-decoration: none; font-size: 0.85rem; font-weight: 600;
+        }
+
+        /* Loading dots */
+        .thinking {
+            display: flex; align-items: center; gap: 0.4rem;
+            color: #4F46E5; font-size: 0.875rem;
+        }
+        .dot {
+            width: 8px; height: 8px; background: #4F46E5;
+            border-radius: 50%; animation: bounce 1.4s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        /* History */
+        .history-item {
+            border-bottom: 1px solid #F3F4F6; padding: 0.85rem 0;
+            cursor: pointer;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-concern { font-size: 0.875rem; font-weight: 600; color: #374151; display: flex; justify-content: space-between; align-items: center; }
+        .history-date { font-size: 0.72rem; color: #9CA3AF; margin-top: 0.1rem; }
+        .history-preview {
+            font-size: 0.82rem; color: #4B5563; margin-top: 0.35rem;
+            line-height: 1.5; white-space: pre-line;
+        }
+        .history-preview.collapsed {
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .history-toggle {
+            font-size: 0.75rem; color: #4F46E5; font-weight: 500; margin-top: 0.25rem; display: inline-block;
+        }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; display: flex;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.08); z-index: 100;
+        }
+        .bottom-nav a {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 0.7rem 0; color: #9CA3AF;
+            text-decoration: none; font-size: 0.7rem; font-weight: 500;
+        }
+        .bottom-nav a .icon { font-size: 1.4rem; margin-bottom: 0.1rem; }
+        .bottom-nav a.active { color: #4F46E5; }
+    </style>
+</head>
+<body>
+<nav class="top-nav">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="nav-title">🩺 Is This Normal?</div>
+</nav>
+
+<div class="main-content">
+
+    <!-- AI Response (shown after asking) -->
+    <div class="ai-response-card" id="ai-response-card">
+        <div class="ai-header">
+            <div class="ai-avatar">🤖</div>
+            <div>
+                <div class="ai-name">Regrowth Assistant</div>
+                <div class="ai-sub">AI-powered, clinically informed</div>
+            </div>
+        </div>
+        <div class="ai-text" id="ai-text">
+            <div class="thinking">
+                Thinking<div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+        </div>
+        <div class="escalate-card" id="escalate-card">
+            <div class="escalate-title">⚠️ When to See a Doctor</div>
+            <div class="escalate-text">This concern may need professional attention. Please consult a dermatologist if symptoms persist beyond 4 weeks or become severe.</div>
+        </div>
+    </div>
+
+    <!-- Ask Section -->
+    <div class="section-card">
+        <div class="section-title">What's bothering you?</div>
+        <div class="section-sub">Tap a concern to get an instant explanation</div>
+
+        <div class="concerns-grid">
+            <button class="concern-btn" onclick="selectConcern('increased_shedding', this)">
+                <span class="concern-icon">🚿</span>
+                <span class="concern-text">Losing more hair in shower</span>
+            </button>
+            <button class="concern-btn" onclick="selectConcern('itchy_scalp', this)">
+                <span class="concern-icon">😣</span>
+                <span class="concern-text">Itchy scalp</span>
+            </button>
+            <button class="concern-btn" onclick="selectConcern('flaking_dryness', this)">
+                <span class="concern-icon">❄️</span>
+                <span class="concern-text">White flakes on scalp</span>
+            </button>
+            <button class="concern-btn" onclick="selectConcern('redness_irritation', this)">
+                <span class="concern-icon">🔴</span>
+                <span class="concern-text">Redness or irritation</span>
+            </button>
+            <button class="concern-btn" onclick="selectConcern('missed_dose', this)">
+                <span class="concern-icon">⏰</span>
+                <span class="concern-text">Missed a dose</span>
+            </button>
+            <button class="concern-btn" onclick="selectConcern('no_visible_results', this)">
+                <span class="concern-icon">🔍</span>
+                <span class="concern-text">No visible results yet</span>
+            </button>
+            <button class="concern-btn" onclick="selectConcern('scalp_tightness', this)">
+                <span class="concern-icon">💆</span>
+                <span class="concern-text">Scalp feels tight</span>
+            </button>
+        </div>
+
+        <!-- Custom input -->
+        <div class="custom-concern">
+            <input type="text" id="custom-concern-input" placeholder="Or type your concern...">
+            <button onclick="selectCustomConcern()">Ask</button>
+        </div>
+
+        <button class="btn-ask" id="ask-btn" onclick="askAI()" disabled>
+            Ask Regrowth Assistant
+        </button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div style="background:#F9FAFB; border-radius:0.75rem; padding:0.75rem 1rem; margin-bottom:1rem; font-size:0.76rem; color:#9CA3AF; line-height:1.5;">
+        ⚠️ This is general educational information, not medical advice. Always consult a dermatologist for personal medical guidance.
+    </div>
+
+    <!-- History -->
+    <div class="section-card">
+        <div class="section-title">Recent Questions</div>
+        <div id="history-list">
+            <div style="text-align:center; color:#9CA3AF; font-size:0.85rem; padding:1rem;">Loading history...</div>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="dashboard.html"><span class="icon">🏠</span>Home</a>
+    <a href="photos.html"><span class="icon">📸</span>Photos</a>
+    <a href="symptoms.html" class="active"><span class="icon">🩺</span>Help</a>
+    <a href="milestones.html"><span class="icon">🏆</span>Badges</a>
+</nav>
+
+<script src="../js/config.js"></script>
+<script>
+    requireAuth();
+
+    let selectedConcern = null;
+
+    function selectConcern(concernId, btn) {
+        // Clear previous selection
+        document.querySelectorAll('.concern-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedConcern = concernId;
+        document.getElementById('custom-concern-input').value = '';
+        document.getElementById('ask-btn').disabled = false;
+    }
+
+    function selectCustomConcern() {
+        const input = document.getElementById('custom-concern-input').value.trim();
+        if (!input) return;
+        document.querySelectorAll('.concern-btn').forEach(b => b.classList.remove('selected'));
+        selectedConcern = input;
+        document.getElementById('ask-btn').disabled = false;
+        askAI();
+    }
+
+    async function askAI() {
+        if (!selectedConcern) return;
+
+        const btn = document.getElementById('ask-btn');
+        const responseCard = document.getElementById('ai-response-card');
+        const aiText = document.getElementById('ai-text');
+        const escalateCard = document.getElementById('escalate-card');
+
+        btn.disabled = true;
+        btn.textContent = 'Getting answer...';
+        responseCard.style.display = 'block';
+        escalateCard.style.display = 'none';
+        aiText.innerHTML = `<div class="thinking">Thinking<div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+
+        // Scroll to response
+        responseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        try {
+            const result = await apiCall('/symptoms/check', 'POST', {
+                concern_type: selectedConcern
+            });
+
+            aiText.textContent = result.response;
+
+            if (result.escalate_to_doctor) {
+                escalateCard.style.display = 'block';
+            }
+
+            showToast('Got your answer! ✅', 'success');
+
+            // Refresh history
+            loadHistory();
+
+        } catch (err) {
+            aiText.textContent = 'Sorry, could not get a response. Please try again.';
+            showToast('Failed to get AI response', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Ask Regrowth Assistant';
+        }
+    }
+
+    async function loadHistory() {
+        try {
+            const data = await apiCall('/symptoms/history?limit=5');
+            const list = document.getElementById('history-list');
+
+            if (!data.queries || data.queries.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#9CA3AF; font-size:0.85rem; padding:1rem;">No previous questions</div>';
+                return;
+            }
+
+            const labels = {
+                increased_shedding: '🚿 Losing more hair in shower',
+                itchy_scalp: '😣 Itchy scalp',
+                flaking_dryness: '❄️ White flakes on scalp',
+                redness_irritation: '🔴 Redness or irritation',
+                missed_dose: '⏰ Missed a dose',
+                no_visible_results: '🔍 No visible results yet',
+                scalp_tightness: '💆 Scalp feels tight'
+            };
+
+            list.innerHTML = data.queries.map((q, idx) => `
+                <div class="history-item" onclick="toggleHistory(${idx})">
+                    <div class="history-concern">
+                        <span>${labels[q.concern_type] || q.concern_type}</span>
+                        <span class="history-toggle" id="toggle-btn-${idx}">View ▾</span>
+                    </div>
+                    <div class="history-date">${formatDate(q.created_at)}</div>
+                    <div class="history-preview collapsed" id="history-text-${idx}">${q.ai_response}</div>
+                </div>
+            `).join('');
+        } catch (err) {
+            document.getElementById('history-list').innerHTML =
+                '<div style="text-align:center; color:#9CA3AF; font-size:0.85rem; padding:1rem;">Could not load history</div>';
+        }
+    }
+
+    function toggleHistory(idx) {
+        const textEl = document.getElementById(`history-text-${idx}`);
+        const btnEl = document.getElementById(`toggle-btn-${idx}`);
+        if (!textEl) return;
+        const isCollapsed = textEl.classList.contains('collapsed');
+        if (isCollapsed) {
+            textEl.classList.remove('collapsed');
+            btnEl.textContent = 'Collapse ▴';
+        } else {
+            textEl.classList.add('collapsed');
+            btnEl.textContent = 'View ▾';
+        }
+    }
+
+    loadHistory();
+</script>
+</body>
+</html>

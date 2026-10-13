@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regrowth OS — Milestones & Badges</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #F0F4FF; font-family: 'Inter', sans-serif; }
+        .top-nav {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white; padding: 1rem 1.5rem;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .nav-title { font-size: 1.1rem; font-weight: 700; }
+        .main-content { padding: 1rem; padding-bottom: 5rem; max-width: 680px; margin: 0 auto; }
+        .section-card {
+            background: white; border-radius: 1.25rem;
+            padding: 1.25rem; margin-bottom: 1rem;
+            box-shadow: 0 2px 15px rgba(79,70,229,0.08);
+        }
+        .section-title { font-size: 1rem; font-weight: 700; color: #111827; margin-bottom: 1rem; }
+
+        /* Summary banner */
+        .summary-banner {
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            border-radius: 1.25rem; padding: 1.5rem;
+            color: white; text-align: center; margin-bottom: 1rem;
+        }
+        .summary-day { font-size: 3rem; font-weight: 700; line-height: 1; }
+        .summary-label { font-size: 0.9rem; opacity: 0.85; margin-top: 0.25rem; }
+        .summary-stats {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem; margin-top: 1.25rem;
+        }
+        .summary-stat { text-align: center; }
+        .summary-stat-value { font-size: 1.5rem; font-weight: 700; }
+        .summary-stat-label { font-size: 0.7rem; opacity: 0.8; }
+
+        /* Streak badges */
+        .badge-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+        }
+        .badge-item {
+            border: 2px solid #E5E7EB; border-radius: 1rem;
+            padding: 1rem; text-align: center; transition: all 0.2s;
+        }
+        .badge-item.earned {
+            border-color: #FCD34D; background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+        }
+        .badge-item.locked { opacity: 0.5; }
+        .badge-emoji { font-size: 2.5rem; margin-bottom: 0.4rem; }
+        .badge-name { font-size: 0.85rem; font-weight: 700; color: #111827; }
+        .badge-days { font-size: 0.72rem; color: #6B7280; margin-top: 0.15rem; }
+        .badge-status {
+            display: inline-block; margin-top: 0.4rem;
+            font-size: 0.7rem; font-weight: 600;
+            padding: 0.2rem 0.6rem; border-radius: 2rem;
+        }
+        .badge-status.earned { background: #D1FAE5; color: #065F46; }
+        .badge-status.locked { background: #F3F4F6; color: #9CA3AF; }
+
+        /* Treatment milestones */
+        .milestone-item {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.85rem 0; border-bottom: 1px solid #F3F4F6;
+        }
+        .milestone-item:last-child { border-bottom: none; }
+        .milestone-icon {
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; flex-shrink: 0;
+            background: #F3F4F6;
+        }
+        .milestone-icon.achieved { background: #D1FAE5; }
+        .milestone-icon.active { background: #EEF2FF; }
+        .milestone-info { flex: 1; }
+        .milestone-title { font-size: 0.9rem; font-weight: 600; color: #111827; }
+        .milestone-desc { font-size: 0.75rem; color: #6B7280; margin-top: 0.1rem; }
+        .milestone-day { font-size: 0.75rem; font-weight: 600; color: #9CA3AF; white-space: nowrap; }
+        .milestone-day.achieved { color: #10B981; }
+        .milestone-day.active { color: #4F46E5; }
+
+        /* Treatment Timeline visual */
+        .visual-timeline {
+            position: relative; padding: 0.5rem 0;
+        }
+        .vt-bar {
+            height: 8px; background: #E5E7EB; border-radius: 4px;
+            position: relative; overflow: visible; margin: 1.5rem 0 1rem;
+        }
+        .vt-fill {
+            height: 100%; background: linear-gradient(90deg, #4F46E5, #7C3AED);
+            border-radius: 4px; transition: width 0.8s;
+        }
+        .vt-markers {
+            display: flex; justify-content: space-between;
+            position: absolute; bottom: -1.5rem; left: 0; right: 0;
+        }
+        .vt-marker { font-size: 0.65rem; color: #9CA3AF; text-align: center; }
+        .vt-dot {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid white; z-index: 2;
+        }
+        .vt-dot.future { background: #D1D5DB; }
+        .vt-dot.passed { background: #10B981; }
+        .vt-dot.current { background: #4F46E5; box-shadow: 0 0 0 4px rgba(79,70,229,0.2); }
+        .today-marker {
+            position: absolute; top: -20px;
+            transform: translateX(-50%);
+            font-size: 0.65rem; color: #4F46E5;
+            font-weight: 600; white-space: nowrap;
+        }
+
+        /* Phase descriptions */
+        .phase-info-grid {
+            display: grid; gap: 0.5rem;
+        }
+        .phase-info-item {
+            padding: 0.75rem; border-radius: 0.75rem;
+            border: 1px solid #E5E7EB;
+            display: flex; gap: 0.75rem; align-items: flex-start;
+        }
+        .phase-info-item.current-phase { border-color: #4F46E5; background: #EEF2FF; }
+        .phase-emoji { font-size: 1.5rem; flex-shrink: 0; }
+        .phase-name { font-size: 0.875rem; font-weight: 600; color: #111827; }
+        .phase-range { font-size: 0.72rem; color: #9CA3AF; }
+        .phase-desc { font-size: 0.78rem; color: #6B7280; margin-top: 0.2rem; line-height: 1.5; }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; display: flex;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.08); z-index: 100;
+        }
+        .bottom-nav a {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 0.7rem 0; color: #9CA3AF;
+            text-decoration: none; font-size: 0.7rem; font-weight: 500;
+        }
+        .bottom-nav a .icon { font-size: 1.4rem; margin-bottom: 0.1rem; }
+        .bottom-nav a.active { color: #4F46E5; }
+    </style>
+</head>
+<body>
+<nav class="top-nav">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="nav-title">🏆 Milestones & Badges</div>
+</nav>
+
+<div class="main-content">
+
+    <!-- Summary Banner -->
+    <div class="summary-banner">
+        <div class="summary-day" id="banner-day">–</div>
+        <div class="summary-label">Days into Treatment</div>
+        <div class="summary-stats">
+            <div class="summary-stat">
+                <div class="summary-stat-value" id="banner-streak">–</div>
+                <div class="summary-stat-label">🔥 Streak</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-stat-value" id="banner-points">–</div>
+                <div class="summary-stat-label">⭐ Points</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-stat-value" id="banner-badges">–</div>
+                <div class="summary-stat-label">🏅 Badges</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Streak Badges -->
+    <div class="section-card">
+        <div class="section-title">🏅 Streak Badges</div>
+        <div class="badge-row" id="badge-grid">
+            <!-- Filled dynamically -->
+        </div>
+    </div>
+
+    <!-- Treatment Milestones -->
+    <div class="section-card">
+        <div class="section-title">🎯 Treatment Milestones</div>
+        <div id="milestones-list">
+            <!-- Filled dynamically -->
+        </div>
+    </div>
+
+    <!-- Phase Reference -->
+    <div class="section-card">
+        <div class="section-title">📚 Hair Growth Phases</div>
+        <div class="phase-info-grid" id="phase-info">
+            <!-- Filled dynamically -->
+        </div>
+    </div>
+
+</div>
+
+<nav class="bottom-nav">
+    <a href="dashboard.html"><span class="icon">🏠</span>Home</a>
+    <a href="photos.html"><span class="icon">📸</span>Photos</a>
+    <a href="symptoms.html"><span class="icon">🩺</span>Help</a>
+    <a href="milestones.html" class="active"><span class="icon">🏆</span>Badges</a>
+</nav>
+
+<script src="../js/config.js"></script>
+<script>
+    requireAuth();
+
+    const STREAK_BADGES = [
+        { days: 7, emoji: '🥉', name: 'Consistency Starter', desc: '7-day streak' },
+        { days: 30, emoji: '🥈', name: 'One Month Strong', desc: '30-day streak' },
+        { days: 60, emoji: '🥇', name: 'Shedding Survivor', desc: '60-day streak' },
+        { days: 90, emoji: '🏆', name: 'Regrowth Champion', desc: '90-day streak' }
+    ];
+
+    const PHASES = [
+        {
+            emoji: '🌱', name: 'Adaptation Phase', range: 'Days 1–14',
+            desc: 'Your scalp adjusts to the treatment. Minimal visible change. Stay consistent — this is the crucial foundation period.',
+            start: 0, end: 14
+        },
+        {
+            emoji: '🔄', name: 'Shedding Peak', range: 'Days 15–45',
+            desc: 'OLD, weak telogen hair sheds to make way for new anagen follicles. This is PROOF the treatment is working. Don\'t panic.',
+            start: 15, end: 45
+        },
+        {
+            emoji: '✨', name: 'Early Vellus Growth', range: 'Days 46–90',
+            desc: 'Fine baby hairs (vellus) begin to emerge. You may see a soft, peach-fuzz like regrowth. Keep going!',
+            start: 46, end: 90
+        },
+        {
+            emoji: '💪', name: 'Terminal Densification', range: 'Day 90+',
+            desc: 'Vellus hairs mature into thick, terminal hairs. Visible density improvement. Continue maintenance to preserve results.',
+            start: 91, end: Infinity
+        }
+    ];
+
+    async function loadMilestones() {
+        try {
+            const [milestoneData, streakData, phaseData] = await Promise.all([
+                apiCall('/timeline/milestones'),
+                apiCall('/checkin/streak'),
+                apiCall('/timeline/phase')
+            ]);
+
+            const currentStreak = streakData.current_streak || 0;
+            const currentDay = milestoneData.current_day || phaseData.day_number || 0;
+
+            // Banner
+            document.getElementById('banner-day').textContent = currentDay;
+            document.getElementById('banner-streak').textContent = currentStreak;
+            document.getElementById('banner-points').textContent = streakData.total_points || 0;
+
+            // Count earned badges
+            const earnedCount = STREAK_BADGES.filter(b => currentStreak >= b.days).length;
+            document.getElementById('banner-badges').textContent = earnedCount;
+
+            // Streak badges grid
+            const badgeGrid = document.getElementById('badge-grid');
+            badgeGrid.innerHTML = STREAK_BADGES.map(b => {
+                const earned = currentStreak >= b.days;
+                return `
+                    <div class="badge-item ${earned ? 'earned' : 'locked'}">
+                        <div class="badge-emoji">${b.emoji}</div>
+                        <div class="badge-name">${b.name}</div>
+                        <div class="badge-days">${b.desc}</div>
+                        <span class="badge-status ${earned ? 'earned' : 'locked'}">
+                            ${earned ? '✅ Earned!' : `🔒 ${b.days - currentStreak} days to go`}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            // Treatment milestones
+            const icons = ['🌱', '🔄', '✨', '💪'];
+            const milestonesEl = document.getElementById('milestones-list');
+            const treatments = milestoneData.treatment_milestones || [];
+            milestonesEl.innerHTML = treatments.map((m, i) => {
+                const isActive = !m.achieved && (i === 0 || treatments[i-1].achieved);
+                return `
+                    <div class="milestone-item">
+                        <div class="milestone-icon ${m.achieved ? 'achieved' : isActive ? 'active' : ''}">
+                            ${m.achieved ? '✅' : icons[i]}
+                        </div>
+                        <div class="milestone-info">
+                            <div class="milestone-title">${m.title}</div>
+                            <div class="milestone-desc">${m.description}</div>
+                        </div>
+                        <div class="milestone-day ${m.achieved ? 'achieved' : isActive ? 'active' : ''}">
+                            ${m.achieved ? 'Done!' : `Day ${m.day}`}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Phase reference
+            const phaseInfo = document.getElementById('phase-info');
+            phaseInfo.innerHTML = PHASES.map(ph => {
+                const isCurrent = currentDay >= ph.start && currentDay <= ph.end;
+                return `
+                    <div class="phase-info-item ${isCurrent ? 'current-phase' : ''}">
+                        <div class="phase-emoji">${ph.emoji}</div>
+                        <div>
+                            <div class="phase-name">${ph.name} ${isCurrent ? '← You are here' : ''}</div>
+                            <div class="phase-range">${ph.range}</div>
+                            <div class="phase-desc">${ph.desc}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (err) {
+            console.error('Milestones load error:', err);
+            showToast('Failed to load milestones', 'error');
+        }
+    }
+
+    loadMilestones();
+</script>
+</body>
+</html>
