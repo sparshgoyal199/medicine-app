@@ -1,11 +1,18 @@
+import os
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure backend directory is in sys.path for relative imports
+backend_dir = Path(__file__).resolve().parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from routers import auth, checkin, photos, symptoms, medicine, timeline, notifications
-import os
-from dotenv import load_dotenv
-from pathlib import Path
 
 load_dotenv()
 
@@ -51,14 +58,14 @@ async def health_check():
 # ─── Serve frontend static files ─────────────────────────────────────────────
 # Mount at the very END so API routes take priority
 
-FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
 if FRONTEND_DIR.exists():
-    # Serve /css, /js, /assets, /pages as static directories
-    app.mount("/css", StaticFiles(directory=FRONTEND_DIR / "css"), name="css")
-    app.mount("/js", StaticFiles(directory=FRONTEND_DIR / "js"), name="js")
-    app.mount("/assets", StaticFiles(directory=FRONTEND_DIR / "assets"), name="assets")
-    app.mount("/pages", StaticFiles(directory=FRONTEND_DIR / "pages", html=True), name="pages")
+    # Ensure static directories exist before mounting
+    for folder in ["css", "js", "assets", "pages"]:
+        target_dir = FRONTEND_DIR / folder
+        target_dir.mkdir(parents=True, exist_ok=True)
+        app.mount(f"/{folder}", StaticFiles(directory=target_dir, html=(folder == "pages")), name=folder)
 
     # Serve index.html at root
     @app.get("/index.html")
@@ -71,4 +78,5 @@ else:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
